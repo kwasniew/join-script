@@ -10,56 +10,64 @@ module.exports = function (argv) {
     var inputHtmlContent = fs.readFileSync(inputHtmlName);
     var htmlPath = fs.realpathSync(inputHtmlName);
     var parentSelector = argv.parent || "body";
-    var basePath = htmlPath.substr(0, htmlPath.lastIndexOf("/"));
+    var htmlBasePath = htmlPath.substr(0, htmlPath.lastIndexOf("/"));
     var outputScriptTemplate = argv.output || "js/main.js?v={hash}";
     var scriptAttribute = argv.async ? "async" : argv.defer ? "defer" : "";
 
     var dom = cheerio.load(String(inputHtmlContent));
-    joinScripts(dom);
+    processScripts(dom);
     return new Buffer(dom.html());
 
-    function joinScripts(dom) {
+    function processScripts(dom) {
         var scripts = dom(`${parentSelector} script`);
+        var content = joinContent(scripts);
+        var scriptName = generateFileName(content);
+        var outputFileName = url.parse(scriptName).pathname;
+        var outputFile = path.join(htmlBasePath, outputFileName);
+
+        createFile(outputFile, content);
+        deleteOldScripts(scripts);
+        dom(parentSelector).append(`<script ${scriptAttribute} src="${scriptName}"></script>`);
+    }
+
+    function joinContent(scripts) {
         var scriptsArray = Array.from(scripts);
-        // join files content
-        var joined = scriptsArray.map(function (el) {
+
+        return scriptsArray.map(function (el) {
             el = dom(el);
             var src = el.attr("src");
 
             if (isLocal(src)) {
                 var src = url.parse(el.attr("src")).pathname;
-                var file = path.join(basePath, src);
+                var file = path.join(htmlBasePath, src);
                 var source = fs.readFileSync(file);
                 return source.toString();
-            } else if(!src) {
+            } else if (!src) {
                 return el.text();
             }
 
         }).join(";");
+    }
 
-        // generate script name
-        var hash = crypto.createHash("md5").update(joined).digest("hex").substring(0, 10);
-        var scriptName = outputScriptTemplate.replace("{hash}", hash);
-        var outputFileName = url.parse(scriptName).pathname;
+    function generateFileName(content) {
+        var hash = crypto.createHash("md5").update(content).digest("hex").substring(0, 10);
+        return outputScriptTemplate.replace("{hash}", hash);
+    }
 
+    function createFile(file, content) {
+        var fileBasePath = file.substr(0, file.lastIndexOf("/"));
+        mkdirp.sync(fileBasePath);
+        fs.writeFileSync(file, content);
+    }
 
-        // create a file
-        var outputFile = path.join(basePath, outputFileName);
-        var outputBasePath = outputFile.substr(0, outputFile.lastIndexOf("/"));
-        mkdirp.sync(outputBasePath);
-        fs.writeFileSync(outputFile, joined);
-
-
-        // delete scripts
+    function deleteOldScripts(scripts) {
         scripts.each(function (idx, el) {
             el = dom(el);
             var src = el.attr("src");
-            if(!src || isLocal(src)) {
+            if (!src || isLocal(src)) {
                 dom(el).replaceWith("");
             }
         });
-
-        dom(parentSelector).append(`<script ${scriptAttribute} src="${scriptName}"></script>`);
     }
 
     function isLocal(src) {
