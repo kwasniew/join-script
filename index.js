@@ -38,15 +38,19 @@ module.exports = function (argv) {
             var src = el.attr("src");
 
             if (isLocal(src)) {
-                var src = url.parse(el.attr("src")).pathname;
-                var file = path.join(htmlBasePath, src);
-                var source = fs.readFileSync(file);
-                return source.toString();
+                return readFile(el);
             } else if (!src) {
                 return el.text();
             }
 
         }).join(";");
+    }
+
+    function readFile(el) {
+        var src = url.parse(el.attr("src")).pathname;
+        var file = path.join(htmlBasePath, src);
+        var source = fs.readFileSync(file);
+        return source.toString();
     }
 
     function generateFileName(content) {
