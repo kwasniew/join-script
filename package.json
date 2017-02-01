@@ -1,0 +1,27 @@
+{
+  "name": "join-script",
+  "version": "1.0.0",
+  "description": "joins consecutive script tags into one script",
+  "main": "index.js",
+  "bin": {
+    "join-script": "cli.js"
+  },
+  "author": "Mateusz Kwasniewski",
+  "license": "BSD",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kwasniew/join-script.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kwasniew/join-script/issues"
+  },
+  "homepage": "https://github.com/kwasniew/join-script",
+  "dependencies": {
+    "cheerio": "0.22.0",
+    "minimist": "1.2.0",
+    "mkdirp": "0.5.1"
+  }
+}
