@@ -24,13 +24,14 @@ module.exports = function (argv) {
         // join files content
         var joined = scriptsArray.map(function (el) {
             el = dom(el);
+            var src = el.attr("src");
 
-            if (el.attr("src")) {
+            if (isLocal(src)) {
                 var src = url.parse(el.attr("src")).pathname;
                 var file = path.join(basePath, src);
                 var source = fs.readFileSync(file);
                 return source.toString();
-            } else {
+            } else if(!src) {
                 return el.text();
             }
 
@@ -51,15 +52,14 @@ module.exports = function (argv) {
 
         // delete scripts
         scripts.each(function (idx, el) {
-            dom(el).replaceWith("");
+            el = dom(el);
+            var src = el.attr("src");
+            if(!src || isLocal(src)) {
+                dom(el).replaceWith("");
+            }
         });
 
         dom(parentSelector).append(`<script ${scriptAttribute} src="${scriptName}"></script>`);
-
-        // TODO: create file with normalized name
-        // fetch js from http
-
-
     }
 
     function isLocal(src) {
