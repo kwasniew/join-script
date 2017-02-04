@@ -75,7 +75,7 @@ module.exports = function (argv) {
     }
 
     function isLocal(src) {
-        return src && !url.parse(src).hostname;
+        return src && !src.startsWith("//") && !url.parse(src).hostname;
     }
 
 };
