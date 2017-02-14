@@ -23,14 +23,15 @@ Hash is MD5 of the joined content.
 ```
 npm install join-script
 ```
-Default settings (no defer/async, finds scripts inside body, generates js/main.js?v={hash})
+Default settings (no defer/async, finds scripts inside head and body, generates js/main.js?v={hash}) at the end of the body
 ```
 join-script example/index.html > example/index.after.html
 ```
 
-Make script async, only analyze scripts inside body and custom output script name
+Make script async, only analyze scripts inside head and create custom output script with explicit name and
+injected to the end of the body
 ```
-join-script --async=true --parent=body --output="js/main.js?v={hash}" example/index.html > example/index.after.html
+join-script --async=true --from=head --to=body --output="js/main.js?v={hash}" example/index.html > example/index.after.html
 ```
 
 Add defer to script

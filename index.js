@@ -9,7 +9,8 @@ module.exports = function (argv) {
     var inputHtmlName = argv["_"][0];
     var inputHtmlContent = fs.readFileSync(inputHtmlName);
     var htmlPath = fs.realpathSync(inputHtmlName);
-    var parentSelector = argv.parent || "body";
+    var fromSelector = argv.from || "html";
+    var toSelector = argv.to || "body";
     var htmlBasePath = htmlPath.substr(0, htmlPath.lastIndexOf("/"));
     var outputScriptTemplate = argv.output || "js/main.js?v={hash}";
     var scriptAttribute = argv.async ? "async" : argv.defer ? "defer" : "";
@@ -19,7 +20,7 @@ module.exports = function (argv) {
     return new Buffer(dom.html());
 
     function processScripts(dom) {
-        var scripts = dom(`${parentSelector} script`);
+        var scripts = dom(`${fromSelector} script`);
         var content = joinContent(scripts);
         var scriptName = generateFileName(content);
         var outputFileName = url.parse(scriptName).pathname;
@@ -27,7 +28,7 @@ module.exports = function (argv) {
 
         createFile(outputFile, content);
         deleteOldScripts(scripts);
-        dom(parentSelector).append(`<script ${scriptAttribute} src="${scriptName}"></script>`);
+        dom(toSelector).append(`<script ${scriptAttribute} src="${scriptName}"></script>`);
     }
 
     function joinContent(scripts) {
@@ -41,8 +42,12 @@ module.exports = function (argv) {
                 return readFile(el);
             } else if (!src) {
                 return el.text();
+            } else {
+                return "";
             }
 
+        }).filter(function(text) {
+            return text.trim().length > 0;
         }).join(";");
     }
 
